@@ -55,11 +55,78 @@
 								<div class="container">
 									<header class="major">
 										<h2>Light Detection and Ranging Device (LIDAR)</h2>
-										<p>Description<br />
+										<p>C, Assembly, Python<br />
 									</header>
-									<p>Content</p>
-									<a href="Projects.html#two" class="image"><img src="images/pic02.jpg" alt="" /></a>
+									<p><b><font size= "+1">DEVICE OVERVIEW</font></b></p>
+									<p>The goal is to design an apparatus that will produce a virtual, graphical representation of its environment. Here is a brief description of the project. A much more detailed process will be provided below in case you would like a complete understanding.</p>
+									<li>Uses a Time of Flight sensor to acquire distance data.</li>
+									<li>Uses a Stepper motor to rotate the sensor through a full 360 degrees, providing a set of spherical coordinates which are converted to y, z coordinates.</li>
+									<li>The displacement is acquired through manual movement of the entire device along the x axis.</li>
+									<li>Data is then sent to be processed and visualized by Python's pySerial and matplotlib libraries.</li>
+									<li>These devices are controlled using a MSP432E Microcontroller which is programmed through C.
+									</li>
+									<li>All system components excluding the PC, as housed in a small and portable cardboard box, requiring only a single USB connection.</li>
+									<br>
+									<a class="image"><img src="images/LIDAR2.png"/></a>
+									<p>Physical System + PC Display</p>
+									<br>
+									<p><font size= "+1">DEVICE COMPONENTS: </font></p>
+									<p>MSP432E4 Microcontroller</p>
+									<a class="image"><img src="images/LIDAR5.png"/></a>
+									<li>32-bit Arm Cortex-M4F</li>
+									<li>4 GB of total accessible memory
+									</li>
+									<li>ADC Module contains a 12-bit conversion resolution while supporting 24 input channels for sampling.
+									</li>
+									<li>For serial communication:
+										<ol style="list-style-type: lower-alpha; padding-bottom: 0;">
+										 <li style="margin-left:2em">Baud Rate: 115200</li>
+										 <li style="margin-left:2em; padding-bottom: 0;">Parity: None</li>
+										 <li style="margin-left:2em; padding-bottom: 0;">Data Bits: 8</li>
+										 <li style="margin-left:2em; padding-bottom: 0;">Stop Bits: 1</li>
+										</ol>
+										</li>
+								
+									<p>VL53LIX Time of Flight Sensor & 28BYJ-48 Stepper Motor</p>
+									<a class="image"><img src="images/LIDAR6.jfif"/></a>
+									<a class="image"><img src="images/LIDAR7.jfif"/></a>
+									<li>Fully integrated mini module</li>
+									<li>Up to 50 Hz ranging frequency</li>
+									<li>Distance measurements up to 400 cm</li>
+									<li>I2C Interface</li>
+									<br>
+									
+									<a class="image"><img src="images/LIDAR3.png"/></a>
+									<p>The environment to be mapped for testing the LIDAR.</p>
+
+									<br>
+									<a class="image"><img src="images/LIDAR1.png"/></a>
+									<p>The final graphical representation output provided by the LIDAR of the room above.</p>
+									<p>Below I have written a very detailed description outlining all the steps from acquiring data to producing the graphical representation. All the code used in this project can be found on my <a href= "https://github.com/patep62" target="_blank" >Github</a></p>
+
+									<ol>
+										<li>The first steps include the set up and booting of the ToF sensor. 10 different success messages referring to different steps of this process are printed via serial UART communication.</li>
+										<li>Immediately following the successful completion of step one, the stepper motor is signaled to begin spinning. It is set to spin exactly one full rotation through a for loop. Simultaneously, a variable containing the current position of the motor axle (angle) is updated with each iteration.</li>
+										<li>An if statement within this for loop then controls when a distance measurement is taken through the ToF sensor. The system is designed to take 128 measurements every rotation, which results in one measurement every 2.8125 degrees of rotation. Thus, everytime the position variable reaches this value (which comes out to be every 4 iterations) a distance measurement is taken.</li>
+										<li>When this if statement passes, a series of steps are performed to transmit raw, unformatted distance data via serial UART communication. The distance value is also stored within a debugging array which can be examined through an external debugger.</li>
+										<li>Once a full rotation is completed,  the motor will quickly perform a rotation in the opposite direction, for the purpose of ensuring the wiring does not tangle. Additionally, for multiple measurements, the system should be moved according to a predetermined displacement.</li>
+										<li>Once the motor has completed its rewinding, it will immediately begin the next rotation, repeating steps 3 - 5. The number of times this step is done can be manually changed in the C code by editing the controlling for loop.</li>
+										<li>Now working from python, a serial UART communication method is implemented for data transmission. Initially, the proper port is accessed, along with the correct baud rate.</li>
+										<li>The first ten lines of data will reference the booting status of the ToF sensor, so these can be printed or ignored.</li>
+										<li>Next, an outer for loop is established based on the number of measurements to be taken (similarly to the C code). Edit the range of this for loop in accordance to the number of measurements to be taken.</li>
+										<li>This is a simplex communication. The microcontroller is only ever sending data to the external pc, and never vice versa. Additionally, Python will always be waiting for serial UART communication when asked to read data from the port. The inner for loop will then both read and decode every distance measurement being transmitted. This loop will run 128 times (the number of measurements to be taken per rotation).</li>
+										<li>After the incoming data is decoded into an integer stored in a variable, it is then immediately converted to its corresponding rectangular coordinates and stored within lists (for the y and z points) before the next line of data is read. The formulas for the conversions are as follows:
+											y = Distance * cos(theta), where theta is the current angle of the motor in radians.
+											x = Distance * sin(theta), where theta is the current angle of the motor in radians.
+											</li>
+										<li>Finally, the displacement list is very simply hardcoded through multiple for loops and can be easily edited to match testing specifications.</li>
+
+									</ol>
+
+									<a class="image"><img src="images/LIDAR4.png"/></a>
+									<p>A visual representation of the analog to digital conversion process carried out by the LIDAR's microcontroller.</p>
 								</div>
+
 							</section>
 
 						<!-- Two -->
